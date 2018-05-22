@@ -1,0 +1,145 @@
+import paho.mqtt.client as mqtt
+import RPi.GPIO as GPIO
+import time
+
+
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(11, GPIO.OUT)
+pwm = GPIO.PWM(11, 50)
+pwm.start(7.5)
+GPIO.setup(12, GPIO.OUT)
+pwm1 = GPIO.PWM(12, 50)
+pwm1.start(7.5)
+
+GPIO.setwarnings(False)
+mlamba = 40
+hlamba  = 38
+slamba = 37
+diskapi  = 36
+isitici    = 33
+sogutucu  =32
+ickapi   = 35
+Motor1A = 16
+Motor1B = 18
+Motor1E = 22
+
+GPIO.setup(Motor1A,GPIO.OUT)
+GPIO.setup(Motor1B,GPIO.OUT)
+GPIO.setup(Motor1E,GPIO.OUT)
+GPIO.output(Motor1A, GPIO.LOW)
+GPIO.output(Motor1B, GPIO.LOW)
+GPIO.output(Motor1E, GPIO.LOW)
+
+
+GPIO.setup(mlamba, GPIO.OUT)
+GPIO.output(mlamba, GPIO.LOW)
+
+GPIO.setup(hlamba, GPIO.OUT)
+GPIO.output(hlamba, GPIO.LOW)
+
+GPIO.setup(slamba, GPIO.OUT)
+GPIO.output(slamba, GPIO.LOW)
+GPIO.setup(diskapi, GPIO.OUT)
+GPIO.output(diskapi, GPIO.LOW)
+
+GPIO.setup(isitici, GPIO.OUT)
+GPIO.output(isitici, GPIO.LOW)
+
+GPIO.setup(sogutucu, GPIO.OUT)
+GPIO.output(sogutucu, GPIO.LOW)
+
+GPIO.setup(ickapi, GPIO.OUT)
+GPIO.output(ickapi, GPIO.LOW)
+
+
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code " + str(rc))
+    client.subscribe("Mutfaklamba")
+    client.subscribe("Lamba")
+    client.subscribe("Salonlamba")
+    client.subscribe("Fan")
+    client.subscribe("Lam")
+    client.subscribe("Kap")
+    client.subscribe("Fan1")
+def on_message(client, userdata, msg):
+
+
+    if msg.payload.decode() == "01":
+        GPIO.output(mlamba, GPIO.HIGH)
+        print ("Mutfak LAMBA YANDI")
+    if msg.payload.decode() == "1":
+        GPIO.output(mlamba, GPIO.LOW)
+        print ("Mutfak LAMBA SONDU")
+
+    if msg.payload.decode() == "21":
+        GPIO.output(hlamba, GPIO.HIGH)
+        print ("HOL LAMBA YANDI")
+    if msg.payload.decode() == "20":
+        GPIO.output(hlamba, GPIO.LOW)
+        print ("HOL LAMBA SONDU")
+
+    if msg.payload.decode() == "4":
+        GPIO.output(slamba, GPIO.HIGH)
+        print ("SALON LAMBA YANDI")
+    if msg.payload.decode() == "5":
+        GPIO.output(slamba, GPIO.LOW)
+        print ("SALON LAMBA SONDU")
+ if msg.payload.decode() == "4":
+        GPIO.output(slamba, GPIO.HIGH)
+        print ("SALON LAMBA YANDI")
+    if msg.payload.decode() == "5":
+        GPIO.output(slamba, GPIO.LOW)
+        print ("SALON LAMBA SONDU")
+
+    if msg.payload.decode() == "8":
+        GPIO.output(Motor1A,GPIO.HIGH)
+        GPIO.output(Motor1B,GPIO.LOW)
+        GPIO.output(Motor1E,GPIO.HIGH)
+        GPIO.output(isitici, GPIO.HIGH)
+        print ("ISITICI CALISIYOR")
+    if msg.payload.decode() == "99":
+        GPIO.output(Motor1A,GPIO.LOW)
+        GPIO.output(Motor1B,GPIO.LOW)
+        GPIO.output(Motor1E,GPIO.LOW)
+        GPIO.output(isitici, GPIO.LOW)
+        print ("ISITICI DURDU")
+
+    if msg.payload.decode() == "30":
+        pwm1.ChangeDutyCycle(10.5)
+        GPIO.output(diskapi, GPIO.HIGH)
+        print ("DIS KAPI ACILIYOR")
+    if msg.payload.decode() == "31":
+        pwm1.ChangeDutyCycle(3.5)
+        GPIO.output(diskapi, GPIO.LOW)
+        print ("DIS KAPI KAPANIYOR")
+    if msg.payload.decode() == "40":
+        pwm.ChangeDutyCycle(10.5)
+        GPIO.output(ickapi, GPIO.HIGH)
+        print ("IC KAPI ACILIYOR")
+    if msg.payload.decode() == "41":
+        pwm.ChangeDutyCycle(3.5)
+        GPIO.output(ickapi, GPIO.LOW)
+        print ("IC KAPI KAPANIYOR")
+
+    if msg.payload.decode() == "55":
+        GPIO.output(Motor1A,GPIO.LOW)
+        GPIO.output(Motor1B,GPIO.HIGH)
+        GPIO.output(Motor1E,GPIO.HIGH)
+        GPIO.output(sogutucu, GPIO.HIGH)
+        print ("SOGUTUCU CALISIYOR")
+    if msg.payload.decode() == "52":
+        GPIO.output(Motor1A,GPIO.LOW)
+        GPIO.output(Motor1B,GPIO.LOW)
+        GPIO.output(Motor1E,GPIO.LOW)
+        GPIO.output(sogutucu, GPIO.LOW)
+        print ("SOGUTUCU DURDU")
+
+
+client = mqtt.Client()
+client.connect("iot.eclipse.org", 1883, 60)
+
+client.on_connect = on_connect
+client.on_message = on_message
+client.loop_forever()

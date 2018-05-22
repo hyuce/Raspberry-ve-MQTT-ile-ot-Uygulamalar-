@@ -1,0 +1,55 @@
+#-*-coding:utf-8-*-
+
+import pigpio
+import paho.mqtt.client as mqtt
+pi = pigpio.pi()
+
+INA = 13
+INB = 19
+INC = 26
+IND = 12
+
+pi.set_mode(INA, pigpio.OUTPUT)
+pi.set_mode(INB, pigpio.OUTPUT)
+pi.set_mode(INC, pigpio.OUTPUT)
+pi.set_mode(IND, pigpio.OUTPUT)
+
+pi.write(INA, 0)
+pi.write(INB, 0)
+pi.write(INC, 0)
+pi.write(IND, 0)
+
+def baglandiginda(client, userdata, flags, rc):
+	print("baðlandý")
+	client.subscribe("/raspikitap")
+
+def mesajda(client,  userdata, msg):
+        print(msg.topic+ " " +str(msg.payload))
+	yon1 ,hiz1 ,yon2 ,hiz2 = [int(i) for i in msg.payload.split(',')]
+	#yon1,hiz1,yon2,hiz2
+	try:
+            yon1, hiz1, yon2, hiz2 = [ int(i) for i in msg.payload.split(',')]
+        except:
+            print "hatalý veri"
+            return
+        
+        if yon1 == 1: # 1.MOTOR ÝLERÝ
+            pi.hardware_PWM(INA,25000,hiz1*1000)
+            pi.write(INB,0)
+        elif yon1 == 2: #1.motor geri
+            pi.hardware_PWM(INA,25000,(1000-hiz1)*1000)
+            pi.write(INB,1)
+        if yon2 == 1: #2.motor ileri
+            pi.hardware_PWM(IND,25000,hiz2*1000)
+            pi.write(INC,0)
+	elif yon2 == 2: #2.motor geri
+            pi.hardware_PWM(IND,25000,(1000-hiz2)*1000)
+            pi.write(INC,1)
+            
+client = mqtt.Client()
+client.on_connect = baglandiginda
+client.on_message = mesajda
+client.connect("iot.eclipse.org",1883,60)
+
+
+
